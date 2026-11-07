@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Ideas | Smart College Portal</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+            color: #26334d;
+        }
+
+        nav {
+            background: #263b80;
+            color: white;
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 35px auto;
+            padding: 0 18px;
+        }
+
+        h2 {
+            color: #263b80;
+            margin-bottom: 8px;
+        }
+
+        .intro {
+            color: #68738a;
+            margin-bottom: 25px;
+        }
+
+        .idea-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .idea-card h3 {
+            color: #263b80;
+            margin-bottom: 10px;
+        }
+
+        .details {
+            color: #68738a;
+            line-height: 1.7;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .status {
+            padding: 7px 13px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #fff2d6;
+            color: #946200;
+            height: fit-content;
+        }
+
+        .status.Under-Review {
+            background: #e2efff;
+            color: #2459a6;
+        }
+
+        .status.Accepted, .status.Implemented {
+            background: #dff7e8;
+            color: #187343;
+        }
+
+        .status.Rejected {
+            background: #ffe3e3;
+            color: #b42323;
+        }
+
+        .remarks {
+            background: #f3f5fa;
+            padding: 13px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .empty {
+            background: white;
+            padding: 35px;
+            text-align: center;
+            border-radius: 12px;
+            color: #68738a;
+        }
+
+        .new-btn {
+            display: inline-block;
+            margin-top: 18px;
+            background: #354f9e;
+            color: white;
+            padding: 11px 18px;
+            border-radius: 7px;
+            text-decoration: none;
+        }
+
+        #message {
+            text-align: center;
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <h3>Smart College Portal</h3>
+    <a href="student-dashboard.html">← Dashboard</a>
+</nav>
+
+<div class="container">
+
+    <h2>💡 My Submitted Ideas</h2>
+
+    <p class="intro">
+        Track your ideas and check the latest review status.
+    </p>
+
+    <div id="ideasContainer">
+        <p id="message">Loading your ideas...</p>
+    </div>
+
+</div>
+
+<script>
+    const container = document.getElementById("ideasContainer");
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+    }
+
+    function formatDate(date) {
+        return new Date(date).toLocaleString("en-IN", {
+            dateStyle: "medium",
+            timeStyle: "short"
+        });
+    }
+
+    async function loadIdeas() {
+        try {
+            const loginResponse = await fetch("/api/auth/me");
+
+            if (!loginResponse.ok) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            const response = await fetch("/api/ideas/my");
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                container.innerHTML = "<p id='message'>Unable to load ideas.</p>";
+                return;
+            }
+
+            if (result.data.length === 0) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <h3>No ideas submitted yet!</h3>
+                        <p>Share your first idea to improve our college.</p>
+                        <a class="new-btn" href="submit-idea.html">
+                            Share an Idea
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = result.data.map(idea => {
+                const statusClass = idea.status.replace(/\s+/g, "-");
+
+                return `
+                    <div class="idea-card">
+                        <div class="top">
+                            <div>
+                                <h3>${escapeHTML(idea.title)}</h3>
+                                <p class="details">
+                                    Idea Tracking ID: ${escapeHTML(idea.tracking_id || "Not available")}<br>
+                                    Category: ${escapeHTML(idea.category)}<br>
+                                    Submitted: ${formatDate(idea.created_at)}
+                                </p>
+                            </div>
+
+                            <span class="status ${statusClass}">
+                                ${escapeHTML(idea.status)}
+                            </span>
+                        </div>
+
+                        <p>${escapeHTML(idea.description)}</p>
+
+                        <div class="remarks">
+                            <strong>Admin Remarks:</strong><br>
+                            ${idea.admin_remarks
+                                ? escapeHTML(idea.admin_remarks)
+                                : "No remarks added yet."}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+        } catch (error) {
+            console.error(error);
+            container.innerHTML =
+                "<p id='message'>Server connection failed.</p>";
+        }
+    }
+
+    loadIdeas();
+</script>
+
+</body>
+</html>

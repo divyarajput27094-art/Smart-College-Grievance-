@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login | Smart Grievance System</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #e8f0ff, #d5e4ff);
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            padding: 38px;
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        h2 {
+            text-align: center;
+            color: #174ea6;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 28px;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            margin-bottom: 20px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus {
+            border-color: #2463c7;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #2463c7;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #174ea6;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #2463c7;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+
+        <h2>Student Login</h2>
+        <p class="subtitle">Smart College Grievance Redressal System</p>
+
+        <form id="loginForm">
+
+            <label>Enrollment Number</label>
+            <input
+                type="text"
+                id="enrollment_number"
+                placeholder="Enter enrollment number"
+                required
+            >
+
+            <label>Password</label>
+            <input
+                type="password"
+                id="password"
+                placeholder="Enter your password"
+                required
+            >
+
+            <button type="submit" id="loginBtn">Login</button>
+
+        </form>
+
+        <p id="message"></p>
+
+        <div class="register-link">
+            Don't have an account?
+            <a href="register.html">Register Here</a>
+        </div>
+
+    </div>
+
+    <script>
+        const loginForm = document.getElementById("loginForm");
+        const message = document.getElementById("message");
+        const loginBtn = document.getElementById("loginBtn");
+
+        loginForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const enrollment_number =
+                document.getElementById("enrollment_number").value.trim();
+
+            const password =
+                document.getElementById("password").value;
+
+            loginBtn.disabled = true;
+            loginBtn.innerText = "Logging in...";
+            message.innerText = "";
+
+            try {
+                const response = await fetch("/api/auth/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        enrollment_number,
+                        password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    message.style.color = "green";
+                    message.innerText = "Login successful!";
+
+                    // Dashboard will be created in the next step.
+                    setTimeout(() => {
+                        window.location.href = "/student-dashboard.html";
+                    }, 1000);
+
+                } else {
+                    message.style.color = "red";
+                    message.innerText = result.message;
+                    loginBtn.disabled = false;
+                    loginBtn.innerText = "Login";
+                }
+
+            } catch (error) {
+                message.style.color = "red";
+                message.innerText = "Server connection failed. Try again.";
+
+                loginBtn.disabled = false;
+                loginBtn.innerText = "Login";
+            }
+        });
+    </script>
+
+</body>
+</html>

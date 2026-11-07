@@ -1,0 +1,413 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | Smart College Grievance System</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f4f6fb;
+    color: #263247;
+}
+
+header {
+    background: #172554;
+    color: white;
+    padding: 20px 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logout {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.container {
+    width: 92%;
+    max-width: 1250px;
+    margin: 35px auto;
+}
+
+.welcome {
+    margin-bottom: 25px;
+}
+
+.welcome h1 {
+    margin-bottom: 8px;
+}
+
+.welcome p {
+    color: #64748b;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 18px;
+}
+
+.card {
+    background: white;
+    padding: 23px;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px #0000000d;
+    border-left: 5px solid #2563eb;
+}
+
+.card:nth-child(2) { border-color: #f59e0b; }
+.card:nth-child(3) { border-color: #9333ea; }
+.card:nth-child(4) { border-color: #16a34a; }
+.card:nth-child(5) { border-color: #0891b2; }
+
+.card p {
+    color: #64748b;
+    margin-bottom: 13px;
+}
+
+.card h2 {
+    font-size: 30px;
+}
+
+.section {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    margin-top: 28px;
+    box-shadow: 0 3px 12px #0000000d;
+}
+
+.section h2 {
+    margin-bottom: 18px;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 850px;
+}
+
+th, td {
+    padding: 13px 11px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+}
+
+th {
+    background: #eff4ff;
+    color: #172554;
+}
+
+.status {
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.actions button {
+    border: none;
+    color: white;
+    padding: 8px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.accept { background: #16a34a; }
+.reject { background: #dc2626; }
+.progress { background: #2563eb; }
+.resolve { background: #0891b2; }
+
+.actions button:hover {
+    opacity: 0.8;
+}
+
+#message {
+    margin-top: 15px;
+    color: #64748b;
+}
+
+@media(max-width:600px) {
+    header {
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .container {
+        width: 95%;
+    }
+
+    .section {
+        padding: 15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>Smart College Grievance System</h2>
+    <button class="logout" onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+
+    <div class="welcome">
+        <h1>Admin Dashboard</h1>
+        <p>Manage student complaints and suggestions.</p>
+    </div>
+
+    <div class="cards">
+        <div class="card">
+            <p>Total Complaints</p>
+            <h2 id="totalComplaints">0</h2>
+        </div>
+
+        <div class="card">
+            <p>Submitted</p>
+            <h2 id="pendingComplaints">0</h2>
+        </div>
+
+        <div class="card">
+            <p>Under Review</p>
+            <h2 id="underReviewComplaints">0</h2>
+        </div>
+
+        <div class="card">
+            <p>Resolved</p>
+            <h2 id="resolvedComplaints">0</h2>
+        </div>
+
+        <div class="card">
+            <p>Student Ideas</p>
+            <h2 id="totalIdeas">0</h2>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Manage Student Complaints</h2>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tracking ID</th>
+                        <th>Student</th>
+                        <th>Department</th>
+                        <th>Subject</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="complaintTable">
+                    <tr>
+                        <td colspan="7">Loading complaints...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <p id="message">Loading dashboard...</p>
+    </div>
+
+</div>
+
+<script>
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, function(char) {
+        return {
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[char];
+    });
+}
+
+async function loadDashboard() {
+    try {
+        const response = await fetch("/api/admin/dashboard", {
+            credentials: "include"
+        });
+
+        const result = await response.json();
+
+        if (response.status === 401 || response.status === 403) {
+            window.location.href = "admin-login.html";
+            return;
+        }
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message);
+        }
+
+        const data = result.data;
+
+        document.getElementById("totalComplaints").textContent =
+            data.totalComplaints;
+
+        document.getElementById("pendingComplaints").textContent =
+            data.pendingComplaints;
+
+        document.getElementById("underReviewComplaints").textContent =
+            data.underReviewComplaints;
+
+        document.getElementById("resolvedComplaints").textContent =
+            data.resolvedComplaints;
+
+        document.getElementById("totalIdeas").textContent =
+            data.totalIdeas;
+
+        await loadComplaints();
+
+    } catch (error) {
+        document.getElementById("message").textContent =
+            "Error: " + error.message;
+    }
+}
+
+async function loadComplaints() {
+    const response = await fetch("/api/complaints/admin/all", {
+        credentials: "include"
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+        throw new Error(result.message || "Unable to load complaints");
+    }
+
+    const table = document.getElementById("complaintTable");
+
+    if (result.data.length === 0) {
+        table.innerHTML =
+            '<tr><td colspan="7">No complaints found.</td></tr>';
+        return;
+    }
+
+    table.innerHTML = result.data.map(c => `
+        <tr>
+            <td>${escapeHTML(c.tracking_id)}</td>
+            <td>${escapeHTML(c.student_name)}</td>
+            <td>${escapeHTML(c.department_name)}</td>
+            <td>
+                <strong>${escapeHTML(c.subject)}</strong>
+                <br>
+                <small>${escapeHTML(c.description)}</small>
+            </td>
+            <td>${escapeHTML(c.priority)}</td>
+            <td class="status">${escapeHTML(c.status)}</td>
+            <td>
+                <div class="actions">
+                    <button class="accept"
+                        onclick="updateStatus(${Number(c.complaint_id)}, 'Under Review')">
+                        Accept
+                    </button>
+
+                    <button class="reject"
+                        onclick="updateStatus(${Number(c.complaint_id)}, 'Rejected')">
+                        Reject
+                    </button>
+
+                    <button class="progress"
+                        onclick="updateStatus(${Number(c.complaint_id)}, 'In Progress')">
+                        In Progress
+                    </button>
+
+                    <button class="resolve"
+                        onclick="updateStatus(${Number(c.complaint_id)}, 'Resolved')">
+                        Resolve
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join("");
+
+    document.getElementById("message").textContent =
+        result.data.length + " complaints loaded successfully.";
+}
+
+async function updateStatus(id, status) {
+    const confirmed = confirm(
+        "Are you sure you want to change status to " + status + "?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+        const response = await fetch(
+            "/api/complaints/admin/" + id + "/status",
+            {
+                method: "PATCH",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: status,
+                    remarks: "Status updated by administrator"
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Status update failed");
+        }
+
+        alert("Complaint status updated successfully!");
+        await loadDashboard();
+
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function logout() {
+    try {
+        await fetch("/api/auth/logout", {
+            method: "POST",
+            credentials: "include"
+        });
+
+        window.location.href = "admin-login.html";
+
+    } catch (error) {
+        alert("Unable to logout. Please try again.");
+    }
+}
+
+loadDashboard();
+</script>
+
+</body>
+</html>

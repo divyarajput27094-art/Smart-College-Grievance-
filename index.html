@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart College Grievance System</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f5f7fc;
+    color: #1e293b;
+}
+
+nav {
+    background: #172554;
+    color: white;
+    padding: 20px 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+nav h2 {
+    font-size: 21px;
+}
+
+nav span {
+    font-size: 13px;
+    color: #bfdbfe;
+}
+
+.hero {
+    text-align: center;
+    padding: 75px 20px 45px;
+}
+
+.hero h1 {
+    font-size: 36px;
+    color: #172554;
+    margin-bottom: 15px;
+}
+
+.hero p {
+    color: #64748b;
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 650px;
+    margin: auto;
+}
+
+.portals {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 25px 20px 70px;
+    flex-wrap: wrap;
+}
+
+.portal-card {
+    background: white;
+    width: 340px;
+    padding: 35px 25px;
+    text-align: center;
+    border-radius: 14px;
+    box-shadow: 0 5px 22px rgba(0,0,0,0.07);
+    border-top: 5px solid #2563eb;
+}
+
+.portal-card.admin {
+    border-top-color: #16a34a;
+}
+
+.portal-icon {
+    font-size: 42px;
+    margin-bottom: 15px;
+}
+
+.portal-card h2 {
+    margin-bottom: 12px;
+}
+
+.portal-card p {
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+.portal-card a {
+    display: inline-block;
+    text-decoration: none;
+    background: #2563eb;
+    color: white;
+    padding: 12px 27px;
+    border-radius: 7px;
+    font-weight: bold;
+}
+
+.portal-card.admin a {
+    background: #16a34a;
+}
+
+.portal-card a:hover {
+    opacity: 0.85;
+}
+
+footer {
+    background: #172554;
+    color: #cbd5e1;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+}
+
+@media(max-width:600px) {
+    .hero h1 {
+        font-size: 27px;
+    }
+
+    nav {
+        padding: 18px 5%;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <h2>Smart College Grievance System</h2>
+    <span>Student Support & Administration</span>
+</nav>
+
+<section class="hero">
+    <h1>Welcome to Smart College Grievance System</h1>
+
+    <p>
+        A digital platform where students can raise complaints,
+        track their issues and share innovative ideas.
+        We are here to make your college experience better.
+    </p>
+</section>
+
+<section class="portals">
+
+    <div class="portal-card">
+        <div class="portal-icon">🎓</div>
+
+        <h2>Student Portal</h2>
+
+        <p>
+            Login to submit complaints, track complaint status
+            and share your valuable ideas with college administration.
+        </p>
+
+        <a href="login.html">Student Login</a>
+    </div>
+
+    <div class="portal-card admin">
+        <div class="portal-icon">🏛️</div>
+
+        <h2>Admin Portal</h2>
+
+        <p>
+            Authorized administrators can manage student complaints,
+            review suggestions and monitor grievance resolution.
+        </p>
+
+        <a href="admin-login.html">Admin Login</a>
+    </div>
+
+</section>
+
+<footer>
+    © 2026 Smart College Grievance System | All Rights Reserved
+</footer>
+
+</body>
+</html>

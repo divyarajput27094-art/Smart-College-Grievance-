@@ -1,0 +1,416 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Submission | Smart College Portal</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+            color: #26334d;
+        }
+
+        nav {
+            background: #263b80;
+            color: white;
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 45px auto;
+            padding: 0 18px;
+        }
+
+        .box {
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.06);
+        }
+
+        h2 {
+            color: #263b80;
+            margin-bottom: 12px;
+        }
+
+        .intro {
+            color: #68738a;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .tabs button {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #d7ddeb;
+            background: white;
+            color: #354f9e;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tabs button.active {
+            background: #354f9e;
+            color: white;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #d7ddeb;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 15px;
+        }
+
+        .track-btn {
+            width: 100%;
+            padding: 14px;
+            background: #354f9e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #message {
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        #result {
+            margin-top: 25px;
+        }
+
+        .result-card {
+            border: 1px solid #e0e5ef;
+            border-radius: 10px;
+            padding: 22px;
+        }
+
+        .result-card h3 {
+            color: #263b80;
+            margin-bottom: 15px;
+        }
+
+        .detail {
+            margin: 12px 0;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 13px;
+            border-radius: 20px;
+            background: #fff2d6;
+            color: #946200;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .status.Accepted, .status.Resolved,
+        .status.Implemented {
+            background: #dff7e8;
+            color: #187343;
+        }
+
+        .status.Rejected {
+            background: #ffe3e3;
+            color: #b42323;
+        }
+
+        .status.Under-Review, .status.In-Progress {
+            background: #e2efff;
+            color: #2459a6;
+        }
+
+        .remarks {
+            background: #f3f5fa;
+            padding: 14px;
+            border-radius: 8px;
+            margin-top: 18px;
+            line-height: 1.5;
+        }
+
+        .history {
+            margin-top: 22px;
+            border-top: 1px solid #e0e5ef;
+            padding-top: 18px;
+        }
+
+        .history-item {
+            border-left: 3px solid #526dd1;
+            padding: 5px 0 15px 15px;
+            margin-left: 5px;
+        }
+
+        .history-item p {
+            margin-top: 6px;
+            color: #68738a;
+            font-size: 14px;
+        }
+
+        @media(max-width: 550px) {
+            .box {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <h3>Smart College Portal</h3>
+    <a href="student-dashboard.html">← Dashboard</a>
+</nav>
+
+<div class="container">
+
+    <div class="box">
+
+        <h2>Track Your Submission</h2>
+
+        <p class="intro">
+            Track your complaint or idea using its unique tracking ID.
+        </p>
+
+        <div class="tabs">
+            <button type="button" id="complaintTab"
+                class="active" onclick="selectType('complaint')">
+                Complaint
+            </button>
+
+            <button type="button" id="ideaTab"
+                onclick="selectType('idea')">
+                Idea / Suggestion
+            </button>
+        </div>
+
+        <input
+            type="text"
+            id="trackingId"
+            placeholder="Enter Complaint Tracking ID"
+        >
+
+        <button class="track-btn" id="trackBtn"
+            onclick="trackSubmission()">
+            Track Now
+        </button>
+
+        <p id="message"></p>
+
+        <div id="result"></div>
+
+    </div>
+
+</div>
+
+<script>
+    let currentType = "complaint";
+
+    const trackingInput = document.getElementById("trackingId");
+    const message = document.getElementById("message");
+    const result = document.getElementById("result");
+    const trackBtn = document.getElementById("trackBtn");
+
+    function selectType(type) {
+        currentType = type;
+
+        document.getElementById("complaintTab")
+            .classList.toggle("active", type === "complaint");
+
+        document.getElementById("ideaTab")
+            .classList.toggle("active", type === "idea");
+
+        trackingInput.value = "";
+        trackingInput.placeholder = type === "complaint"
+            ? "Enter Complaint Tracking ID"
+            : "Enter Idea Tracking ID";
+
+        message.textContent = "";
+        result.innerHTML = "";
+    }
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+    }
+
+    function formatDate(date) {
+        return new Date(date).toLocaleString("en-IN", {
+            dateStyle: "medium",
+            timeStyle: "short"
+        });
+    }
+
+    async function trackSubmission() {
+        const trackingId = trackingInput.value.trim();
+
+        message.textContent = "";
+        result.innerHTML = "";
+
+        if (!trackingId) {
+            message.style.color = "red";
+            message.textContent = "Please enter your Tracking ID.";
+            return;
+        }
+
+        trackBtn.disabled = true;
+        trackBtn.textContent = "Searching...";
+
+        try {
+            const endpoint = currentType === "complaint"
+                ? "/api/complaints/track/"
+                : "/api/ideas/track/";
+
+            const response = await fetch(
+                endpoint + encodeURIComponent(trackingId)
+            );
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                message.style.color = "red";
+                message.textContent = data.message || "Submission not found.";
+                return;
+            }
+
+            const item = currentType === "complaint"
+                ? data.complaint
+                : data.idea;
+
+            const statusClass = item.status.replace(/\s+/g, "-");
+
+            let historyHTML = "";
+
+            if (currentType === "complaint" &&
+                data.history && data.history.length > 0) {
+
+                historyHTML = `
+                    <div class="history">
+                        <h3>Status History</h3>
+                        ${data.history.map(entry => `
+                            <div class="history-item">
+                                <strong>${escapeHTML(entry.new_status)}</strong>
+                                <p>${escapeHTML(entry.remarks || "Status updated")}</p>
+                                <p>${formatDate(entry.created_at)}</p>
+                            </div>
+                        `).join("")}
+                    </div>
+                `;
+            }
+
+            result.innerHTML = `
+                <div class="result-card">
+
+                    <h3>
+                        ${currentType === "complaint"
+                            ? "Complaint Details"
+                            : "Idea / Suggestion Details"}
+                    </h3>
+
+                    <div class="detail">
+                        <strong>Tracking ID:</strong>
+                        ${escapeHTML(item.tracking_id)}
+                    </div>
+
+                    <div class="detail">
+                        <strong>Title / Subject:</strong>
+                        ${escapeHTML(item.subject || item.title)}
+                    </div>
+
+                    <div class="detail">
+                        <strong>Category:</strong>
+                        ${escapeHTML(item.category)}
+                    </div>
+
+                    <div class="detail">
+                        <strong>Department:</strong>
+                        ${escapeHTML(item.department_name || "Not specified")}
+                    </div>
+
+                    <div class="detail">
+                        <strong>Submitted:</strong>
+                        ${formatDate(item.created_at)}
+                    </div>
+
+                    <div class="detail">
+                        <strong>Current Status:</strong>
+                        <span class="status ${statusClass}">
+                            ${escapeHTML(item.status)}
+                        </span>
+                    </div>
+
+                    <div class="remarks">
+                        <strong>Admin Remarks:</strong><br>
+                        ${escapeHTML(item.admin_remarks || "No remarks added yet.")}
+                    </div>
+
+                    ${historyHTML}
+
+                </div>
+            `;
+
+        } catch (error) {
+            console.error(error);
+            message.style.color = "red";
+            message.textContent = "Server connection failed.";
+        } finally {
+            trackBtn.disabled = false;
+            trackBtn.textContent = "Track Now";
+        }
+    }
+
+    async function checkLogin() {
+        try {
+            const response = await fetch("/api/auth/me");
+
+            if (!response.ok) {
+                window.location.href = "login.html";
+            }
+        } catch (error) {
+            message.style.color = "red";
+            message.textContent = "Server connection failed.";
+        }
+    }
+
+    checkLogin();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | Smart College</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f3f6fc;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #174ea6;
+            color: white;
+            padding: 20px 6%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            font-size: 21px;
+        }
+
+        .logout-btn {
+            background: white;
+            color: #174ea6;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.06);
+            margin-bottom: 30px;
+        }
+
+        .welcome h1 {
+            color: #174ea6;
+            margin-bottom: 12px;
+        }
+
+        .welcome p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .section-title {
+            margin-bottom: 20px;
+            color: #222;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 22px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.06);
+            border-top: 4px solid #2463c7;
+            text-decoration: none;
+            display: block;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        }
+
+        .card h3 {
+            color: #174ea6;
+            margin-bottom: 12px;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .profile {
+            margin-top: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.06);
+        }
+
+        .profile h3 {
+            margin-bottom: 18px;
+            color: #174ea6;
+        }
+
+        .profile p {
+            margin: 12px 0;
+            color: #444;
+        }
+
+        #errorMessage {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+        @media(max-width: 600px) {
+            .navbar {
+                padding: 16px 5%;
+            }
+
+            .navbar h2 {
+                font-size: 16px;
+            }
+
+            .welcome h1 {
+                font-size: 23px;
+            }
+        }
+        .idea-card {
+    margin-top: 20px;
+}
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <h2>Smart College Grievance System</h2>
+        <button class="logout-btn" id="logoutBtn">Logout</button>
+    </nav>
+
+    <div class="container">
+
+        <section class="welcome">
+            <h1>Welcome, <span id="studentName">Student</span>!</h1>
+            <p>
+                Welcome to your Student Dashboard.
+                You can use this platform to raise complaints
+                and monitor their progress.
+            </p>
+        </section>
+
+        <h2 class="section-title">Student Services</h2>
+
+        <div class="cards">
+
+            <!-- SUBMIT COMPLAINT -->
+            <a href="submit-complaint.html" class="card">
+                <h3>Submit Complaint</h3>
+                <p>
+                    Register your college-related grievance
+                    through the online complaint system.
+                </p>
+            </a>
+
+            <!-- MY COMPLAINTS -->
+            <a href="my-complaints.html" class="card">
+                <h3>My Complaints</h3>
+                <p>
+                    View your submitted complaints
+                    and check their current status.
+                </p>
+            </a>
+            <a href="my-ideas.html" class="card">
+    <div class="card-icon">💡</div>
+    <h3>My Ideas</h3>
+    <p>View your submitted ideas and check their current status.</p>
+</a>
+
+            <!-- TRACK COMPLAINT -->
+            <a href="track-complaint.html" class="card">
+                <h3>Track Complaint</h3>
+                <p>
+                    Track the progress of your grievance
+                    using its unique tracking ID.
+                </p>
+            </a>
+
+        </div>
+        <a href="submit-idea.html" class="card idea-card">
+    <div class="card-icon">💡</div>
+    <h3>Share Your Ideas</h3>
+    <p>Share your ideas and suggestions to improve our college.</p>
+</a>
+        <section class="profile">
+            <h3>My Profile</h3>
+
+            <p>
+                <strong>Name:</strong>
+                <span id="profileName">Loading...</span>
+            </p>
+
+            <p>
+                <strong>Enrollment Number:</strong>
+                <span id="enrollment">Loading...</span>
+            </p>
+
+            <p>
+                <strong>Email:</strong>
+                <span id="email">Loading...</span>
+            </p>
+        </section>
+
+        <p id="errorMessage"></p>
+
+    </div>
+
+    <script>
+
+        // LOAD STUDENT DETAILS
+        async function loadStudent() {
+
+            try {
+
+                const response = await fetch("/api/auth/me");
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                const student = result.user;
+
+                document.getElementById("studentName").innerText =
+                    student.full_name;
+
+                document.getElementById("profileName").innerText =
+                    student.full_name;
+
+                document.getElementById("enrollment").innerText =
+                    student.enrollment_number;
+
+                document.getElementById("email").innerText =
+                    student.email;
+
+            } catch (error) {
+
+                document.getElementById("errorMessage").innerText =
+                    "Unable to connect to server.";
+
+            }
+        }
+
+        // LOGOUT
+        document.getElementById("logoutBtn")
+            .addEventListener("click", async function() {
+
+                try {
+
+                    const response = await fetch("/api/auth/logout", {
+                        method: "POST"
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        window.location.href = "/login.html";
+                    } else {
+                        alert("Logout failed. Please try again.");
+                    }
+
+                } catch (error) {
+
+                    alert("Server connection failed.");
+
+                }
+
+            });
+
+        loadStudent();
+
+    </script>
+
+</body>
+</html>
+```

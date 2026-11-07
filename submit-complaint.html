@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Complaint | Smart College</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f3f6fc;
+            padding: 30px 15px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            color: #174ea6;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 17px 0 8px;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #2463c7;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .anonymous {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .anonymous input {
+            width: auto;
+        }
+
+        .anonymous label {
+            margin: 0;
+            font-weight: normal;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 25px;
+            background: #2463c7;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #174ea6;
+        }
+
+        button:disabled {
+            background: #8799b5;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.6;
+            overflow-wrap: anywhere;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #2463c7;
+            text-decoration: none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>Submit New Complaint</h2>
+        <p class="subtitle">Smart College Grievance Redressal System</p>
+
+        <form id="complaintForm">
+
+            <label for="department">Select Department</label>
+            <select id="department" required>
+                <option value="">Loading departments...</option>
+            </select>
+
+            <label for="category">Complaint Category</label>
+            <select id="category" required>
+                <option value="">Select Category</option>
+                <option value="Academic">Academic</option>
+                <option value="Infrastructure">Infrastructure</option>
+                <option value="Hostel">Hostel</option>
+                <option value="Faculty">Faculty</option>
+                <option value="Examination">Examination</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label for="subject">Complaint Subject</label>
+            <input
+                type="text"
+                id="subject"
+                placeholder="Enter complaint subject"
+                maxlength="150"
+                required
+            >
+
+            <label for="description">Complaint Description</label>
+            <textarea
+                id="description"
+                placeholder="Explain your complaint in detail..."
+                required
+            ></textarea>
+
+            <label for="priority">Priority</label>
+            <select id="priority" required>
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+            </select>
+
+            <div class="anonymous">
+                <input type="checkbox" id="anonymous">
+                <label for="anonymous">Submit as Anonymous Complaint</label>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                Submit Complaint
+            </button>
+
+        </form>
+
+        <p id="message"></p>
+
+        <a href="student-dashboard.html" class="back">
+            ← Back to Dashboard
+        </a>
+
+    </div>
+
+    <script>
+
+        const departmentSelect =
+            document.getElementById("department");
+
+        const form = document.getElementById("complaintForm");
+        const message = document.getElementById("message");
+        const submitBtn = document.getElementById("submitBtn");
+
+        // LOAD DEPARTMENTS
+        async function loadDepartments() {
+            try {
+                const response = await fetch("/api/departments");
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    throw new Error("Department loading failed");
+                }
+
+                departmentSelect.innerHTML =
+                    '<option value="">Select Department</option>';
+
+                result.data.forEach(department => {
+                    const option = document.createElement("option");
+
+                    option.value = department.department_id;
+                    option.textContent = department.department_name;
+
+                    departmentSelect.appendChild(option);
+                });
+
+            } catch (error) {
+                departmentSelect.innerHTML =
+                    '<option value="">Unable to load departments</option>';
+            }
+        }
+
+        // SUBMIT COMPLAINT
+        form.addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Submitting...";
+            message.innerText = "";
+
+            const complaintData = {
+                department_id: departmentSelect.value,
+                category: document.getElementById("category").value,
+                subject: document.getElementById("subject").value.trim(),
+                description: document.getElementById("description").value.trim(),
+                priority: document.getElementById("priority").value,
+                is_anonymous: document.getElementById("anonymous").checked
+            };
+
+            try {
+
+                const response = await fetch("/api/complaints", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(complaintData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    message.style.color = "red";
+                    message.innerText = result.message ||
+                        "Complaint submission failed.";
+
+                    return;
+                }
+
+                message.style.color = "green";
+                message.innerHTML =
+                    "Complaint submitted successfully!<br>" +
+                    "Your Tracking ID: <strong>" +
+                    result.tracking_id +
+                    "</strong><br>Please save this ID.";
+
+                form.reset();
+
+            } catch (error) {
+
+                message.style.color = "red";
+                message.innerText =
+                    "Server connection failed. Please try again.";
+
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = "Submit Complaint";
+            }
+
+        });
+
+        // CHECK LOGIN AND LOAD DEPARTMENTS
+        async function initializePage() {
+            try {
+                const response = await fetch("/api/auth/me");
+
+                if (!response.ok) {
+                    window.location.href = "/login.html";
+                    return;
+                }
+
+                await loadDepartments();
+
+            } catch (error) {
+                window.location.href = "/login.html";
+            }
+        }
+
+        initializePage();
+
+    </script>
+
+</body>
+</html>
+```

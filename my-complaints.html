@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Complaints | Smart College</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f3f6fc;
+    color: #26334d;
+}
+
+.navbar {
+    background: #173b72;
+    color: white;
+    padding: 18px 7%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.navbar h2 {
+    font-size: 21px;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    background: #ffffff22;
+    padding: 10px 16px;
+    border-radius: 7px;
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 35px auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    color: #173b72;
+    margin-bottom: 7px;
+}
+
+.header p {
+    color: #718096;
+}
+
+.count {
+    background: white;
+    padding: 15px 22px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px #0000000c;
+}
+
+.count strong {
+    color: #173b72;
+    font-size: 24px;
+}
+
+.complaint-card {
+    background: white;
+    padding: 23px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    box-shadow: 0 3px 14px #0000000b;
+    border-left: 4px solid #3275c9;
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.card-top h3 {
+    color: #173b72;
+    margin-bottom: 6px;
+}
+
+.tracking {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.status {
+    padding: 7px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    height: fit-content;
+}
+
+.Submitted {
+    background: #e0edff;
+    color: #245b9e;
+}
+
+.Under-Review {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.In-Progress {
+    background: #dceeff;
+    color: #075985;
+}
+
+.Resolved {
+    background: #d9f7e5;
+    color: #187344;
+}
+
+.Rejected {
+    background: #ffe0e0;
+    color: #a52222;
+}
+
+.details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin: 18px 0;
+}
+
+.detail {
+    color: #718096;
+    font-size: 13px;
+}
+
+.detail strong {
+    display: block;
+    color: #26334d;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+.description {
+    background: #f7f9fc;
+    padding: 13px;
+    border-radius: 8px;
+    color: #536176;
+    line-height: 1.6;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.empty, .loading, .error {
+    text-align: center;
+    background: white;
+    padding: 45px 20px;
+    border-radius: 12px;
+    color: #64748b;
+}
+
+.empty h2 {
+    color: #173b72;
+    margin-bottom: 10px;
+}
+
+.empty a {
+    display: inline-block;
+    margin-top: 18px;
+    padding: 11px 20px;
+    background: #245da5;
+    color: white;
+    text-decoration: none;
+    border-radius: 7px;
+}
+
+@media(max-width:600px) {
+    .container {
+        width: 94%;
+    }
+    .navbar {
+        padding: 15px 4%;
+    }
+    .complaint-card {
+        padding: 17px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <h2>Smart College Grievance System</h2>
+    <a href="student-dashboard.html">Back to Dashboard</a>
+</nav>
+
+<div class="container">
+
+    <div class="header">
+        <div>
+            <h1>My Complaints</h1>
+            <p>View and manage your submitted complaints.</p>
+        </div>
+
+        <div class="count">
+            Total Complaints:
+            <strong id="totalCount">0</strong>
+        </div>
+    </div>
+
+    <div id="complaintList">
+        <div class="loading">Loading your complaints...</div>
+    </div>
+
+</div>
+
+<script>
+
+async function loadComplaints() {
+    const list = document.getElementById("complaintList");
+
+    try {
+        const response = await fetch("/api/auth/me");
+
+        if (!response.ok) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        const result = await fetch("/api/complaints/my");
+
+        const data = await result.json();
+
+        if (!result.ok || !data.success) {
+            throw new Error(data.message || "Unable to load complaints");
+        }
+
+        const complaints = data.data || [];
+
+        document.getElementById("totalCount").textContent =
+            complaints.length;
+
+        if (complaints.length === 0) {
+            list.innerHTML = `
+                <div class="empty">
+                    <h2>No Complaints Yet</h2>
+                    <p>You have not submitted any complaints.</p>
+                    <a href="submit-complaint.html">Submit Your First Complaint</a>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = complaints.map(c => {
+
+            const statusClass = c.status.replace(/\s+/g, "-");
+
+            return `
+                <div class="complaint-card">
+
+                    <div class="card-top">
+                        <div>
+                            <h3>${escapeHTML(c.subject)}</h3>
+                            <div class="tracking">
+                                Tracking ID: ${escapeHTML(c.tracking_id)}
+                            </div>
+                        </div>
+
+                        <span class="status ${statusClass}">
+                            ${escapeHTML(c.status)}
+                        </span>
+                    </div>
+
+                    <div class="details">
+
+                        <div class="detail">
+                            Department
+                            <strong>${escapeHTML(c.department_name)}</strong>
+                        </div>
+
+                        <div class="detail">
+                            Category
+                            <strong>${escapeHTML(c.category)}</strong>
+                        </div>
+
+                        <div class="detail">
+                            Priority
+                            <strong>${escapeHTML(c.priority)}</strong>
+                        </div>
+
+                        <div class="detail">
+                            Submitted On
+                            <strong>${new Date(c.created_at).toLocaleDateString("en-IN")}</strong>
+                        </div>
+
+                        <div class="detail">
+                            Complaint Type
+                            <strong>${Number(c.is_anonymous) === 1 ? "Anonymous" : "Normal"}</strong>
+                        </div>
+
+                    </div>
+
+                    <div class="description">
+                        ${escapeHTML(c.description)}
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+
+    } catch (error) {
+        console.error(error);
+
+        list.innerHTML = `
+            <div class="error">
+                Unable to load complaints. Please try again.
+                <br><br>
+                <button onclick="loadComplaints()">Retry</button>
+            </div>
+        `;
+    }
+}
+
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+loadComplaints();
+
+</script>
+
+</body>
+</html>

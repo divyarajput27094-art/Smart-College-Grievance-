@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration | Smart College</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #101d40, #2455a4);
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+        }
+
+        h2 {
+            text-align: center;
+            color: #18376d;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin: 14px 0 7px;
+            color: #333;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            border-color: #2455a4;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 23px;
+            background: #2455a4;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #18376d;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #2455a4;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>Student Registration</h2>
+        <p class="subtitle">Smart College Grievance Redressal System</p>
+
+        <form id="registerForm">
+
+            <label>Full Name</label>
+            <input type="text" id="full_name" required>
+
+            <label>Enrollment Number</label>
+            <input type="text" id="enrollment_number" required>
+
+            <label>Email Address</label>
+            <input type="email" id="email" required>
+
+            <label>Department</label>
+            <select id="department_id">
+                <option value="">Select Department</option>
+            </select>
+
+            <label>Password</label>
+            <input type="password" id="password"
+                   minlength="8" required>
+
+            <label>Confirm Password</label>
+            <input type="password" id="confirm_password"
+                   minlength="8" required>
+
+            <button type="submit" id="submitBtn">
+                Create Account
+            </button>
+
+            <p id="message"></p>
+
+        </form>
+
+        <div class="login-link">
+            Already have an account?
+            <a href="login.html">Login</a>
+        </div>
+
+    </div>
+
+    <script>
+        const departmentSelect = document.getElementById("department_id");
+        const message = document.getElementById("message");
+        const form = document.getElementById("registerForm");
+        const submitBtn = document.getElementById("submitBtn");
+
+        // Load departments from database
+        async function loadDepartments() {
+            try {
+                const response = await fetch("/api/departments");
+                const result = await response.json();
+
+                if (result.success) {
+                    result.data.forEach(department => {
+                        const option = document.createElement("option");
+
+                        option.value = department.department_id;
+                        option.textContent = department.department_name;
+
+                        departmentSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                message.style.color = "red";
+                message.textContent = "Unable to load departments.";
+            }
+        }
+
+        loadDepartments();
+
+        // Student Registration
+        form.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const full_name =
+                document.getElementById("full_name").value.trim();
+
+            const enrollment_number =
+                document.getElementById("enrollment_number").value.trim();
+
+            const email =
+                document.getElementById("email").value.trim();
+
+            const department_id = departmentSelect.value;
+
+            const password =
+                document.getElementById("password").value;
+
+            const confirm_password =
+                document.getElementById("confirm_password").value;
+
+            if (password !== confirm_password) {
+                message.style.color = "red";
+                message.textContent = "Passwords do not match!";
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Creating Account...";
+
+            try {
+                const response = await fetch("/api/auth/register", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        full_name,
+                        enrollment_number,
+                        email,
+                        department_id: department_id || null,
+                        password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    message.style.color = "green";
+                    message.textContent =
+                        "Registration successful! You can now login.";
+
+                    form.reset();
+                } else {
+                    message.style.color = "red";
+                    message.textContent = result.message;
+                }
+
+            } catch (error) {
+                message.style.color = "red";
+                message.textContent =
+                    "Server error. Please try again.";
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Create Account";
+        });
+    </script>
+
+</body>
+</html>

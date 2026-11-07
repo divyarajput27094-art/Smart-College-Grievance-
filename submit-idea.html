@@ -1,0 +1,259 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Your Ideas | Smart College Portal</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6fb;
+            color: #26334d;
+        }
+
+        nav {
+            background: #263b80;
+            color: white;
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 45px auto;
+            padding: 0 18px;
+        }
+
+        .form-box {
+            background: white;
+            padding: 32px;
+            border-radius: 14px;
+            box-shadow: 0 5px 22px rgba(0,0,0,0.07);
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #263b80;
+        }
+
+        .intro {
+            color: #68738a;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #d7ddeb;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #526dd1;
+        }
+
+        textarea {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        .anonymous {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .anonymous input {
+            width: auto;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 25px;
+            background: #354f9e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #263b80;
+        }
+
+        #message {
+            margin-top: 18px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        @media(max-width: 600px) {
+            .form-box {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav>
+    <h3>Smart College Portal</h3>
+    <a href="student-dashboard.html">← Dashboard</a>
+</nav>
+
+<div class="container">
+    <div class="form-box">
+
+        <h2>💡 Share Your Ideas & Suggestions</h2>
+
+        <p class="intro">
+            Your ideas can help us make our college better.
+            Share your suggestions with us!
+        </p>
+
+        <form id="ideaForm">
+
+            <label>Idea Title *</label>
+            <input
+                type="text"
+                id="title"
+                placeholder="Enter your idea title"
+                maxlength="200"
+                required
+            >
+
+            <label>Category *</label>
+            <select id="category" required>
+                <option value="">Select Category</option>
+                <option value="Infrastructure">Infrastructure</option>
+                <option value="Teaching">Teaching & Learning</option>
+                <option value="Hostel">Hostel</option>
+                <option value="Library">Library</option>
+                <option value="Sports">Sports & Activities</option>
+                <option value="Technology">Technology</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label>Describe Your Idea *</label>
+            <textarea
+                id="description"
+                placeholder="Explain your idea or suggestion..."
+                required
+            ></textarea>
+
+            <label class="anonymous">
+                <input type="checkbox" id="anonymous">
+                Submit this idea anonymously
+            </label>
+
+            <button type="submit" id="submitBtn">
+                Submit Idea
+            </button>
+
+        </form>
+
+        <p id="message"></p>
+
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById("ideaForm");
+    const message = document.getElementById("message");
+    const submitBtn = document.getElementById("submitBtn");
+
+    async function checkLogin() {
+        try {
+            const response = await fetch("/api/auth/me");
+            if (!response.ok) {
+                window.location.href = "login.html";
+            }
+        } catch (error) {
+            message.style.color = "red";
+            message.textContent = "Server connection failed.";
+        }
+    }
+
+    checkLogin();
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Submitting...";
+        message.textContent = "";
+
+        const ideaData = {
+            title: document.getElementById("title").value.trim(),
+            category: document.getElementById("category").value,
+            description: document.getElementById("description").value.trim(),
+            is_anonymous: document.getElementById("anonymous").checked
+        };
+
+        try {
+            const response = await fetch("/api/ideas", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(ideaData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                message.style.color = "green";
+                message.textContent = result.message;
+                if (result.tracking_id) {
+    message.textContent =
+        result.message + " Your Idea Tracking ID: " + result.tracking_id;
+}
+                form.reset();
+            } else {
+                message.style.color = "red";
+                message.textContent = result.message || "Unable to submit idea.";
+            }
+
+        } catch (error) {
+            message.style.color = "red";
+            message.textContent = "Server connection failed.";
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Submit Idea";
+        }
+    });
+</script>
+
+</body>
+</html>
