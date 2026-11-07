@@ -1,9 +1,13 @@
 
+const express = require("express");
+const session = require("express-session");
+const path = require("path");
+require("dotenv").config();
+
 const complaintRoutes = require("./complaints");
 const ideaRoutes = require("./ideas");
 const db = require("./db");
 const authRoutes = require("./auth");
-
 
 const app = express();
 
