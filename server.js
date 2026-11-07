@@ -1,3 +1,4 @@
+
 const complaintRoutes = require("./routes/complaints");
 const ideaRoutes = require("./routes/ideas");
 const path = require("path");
@@ -9,6 +10,9 @@ const db = require("./config/db");
 const authRoutes = require("./routes/auth");
 
 const app = express();
+
+app.set("trust proxy", 1);
+
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.use(express.json());
@@ -21,10 +25,13 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000
     }
-}));// ADMIN AUTHENTICATION MIDDLEWARE
+}));
+
+// ADMIN AUTHENTICATION MIDDLEWARE
 async function requireAdmin(req, res, next) {
     try {
         if (!req.session.userId) {
@@ -59,6 +66,7 @@ async function requireAdmin(req, res, next) {
         });
     }
 }
+
 // Home API
 app.get("/", (req, res) => {
     res.json({
@@ -77,6 +85,8 @@ app.get("/api/health", async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Health check error:", error.message);
+
         res.status(500).json({
             success: false,
             message: "Database connection failed"
@@ -97,6 +107,8 @@ app.get("/api/departments", async (req, res) => {
         });
 
     } catch (error) {
+        console.error("Departments error:", error.message);
+
         res.status(500).json({
             success: false,
             message: "Unable to fetch departments"
@@ -109,8 +121,10 @@ app.use("/api/auth", authRoutes);
 
 // Complaint routes
 app.use("/api/complaints", complaintRoutes);
+
+// Ideas routes
 app.use("/api/ideas", ideaRoutes);
-// Admin Dashboard API
+
 // Admin Dashboard API
 app.get("/api/admin/dashboard", requireAdmin, async (req, res) => {
     try {
@@ -137,14 +151,17 @@ app.get("/api/admin/dashboard", requireAdmin, async (req, res) => {
                 totalIdeas: ideas[0].total
             }
         });
+
     } catch (error) {
         console.error("Admin dashboard error:", error.message);
+
         res.status(500).json({
             success: false,
             message: "Unable to load dashboard"
         });
     }
 });
+
 // Start server
 const PORT = process.env.PORT || 5000;
 
@@ -157,7 +174,7 @@ async function startServer() {
         connection.release();
 
         app.listen(PORT, () => {
-            console.log(`Server running at http://localhost:${PORT}`);
+            console.log(`Server running on port ${PORT}`);
         });
 
     } catch (error) {
