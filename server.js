@@ -1,19 +1,15 @@
 
-const complaintRoutes = require("./routes/complaints");
-const ideaRoutes = require("./routes/ideas");
-const path = require("path");
-const express = require("express");
-const session = require("express-session");
-require("dotenv").config();
+const complaintRoutes = require("./complaints");
+const ideaRoutes = require("./ideas");
+const db = require("./db");
+const authRoutes = require("./auth");
 
-const db = require("./config/db");
-const authRoutes = require("./routes/auth");
 
 const app = express();
 
 app.set("trust proxy", 1);
 
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(__dirname));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
